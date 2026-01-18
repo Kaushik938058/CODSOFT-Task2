@@ -56,7 +56,9 @@ You are 'X'. AI is 'O'.
 
 
 Enter position (1-9): 1
+
 AI is thinking...
+
 
 
  X |   |   
@@ -67,7 +69,9 @@ AI is thinking...
 
 
 Enter position (1-9): 2
+
 AI is thinking...
+
 
 
  X | X | O 
@@ -78,7 +82,9 @@ AI is thinking...
 
 
 Enter position (1-9): 7
+
 AI is thinking...
+
 
 
  X | X | O 
@@ -89,7 +95,9 @@ AI is thinking...
 
 
 Enter position (1-9): 6
+
 AI is thinking...
+
 
 
  X | X | O 
