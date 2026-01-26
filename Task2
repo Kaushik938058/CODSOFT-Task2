@@ -1,110 +1,329 @@
-import math
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe AI</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent: #06b6d4; /* Cyan/Neon Blue */
+            --accent-glow: rgba(6, 182, 212, 0.5);
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+        }
 
-# --- Global Variables ---
-board = [' ' for _ in range(9)]
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
 
-# --- Helper Functions ---
-def print_board(board):
-    print("\n")
-    print(f" {board[0]} | {board[1]} | {board[2]} ")
-    print("---|---|---")
-    print(f" {board[3]} | {board[4]} | {board[5]} ")
-    print("---|---|---")
-    print(f" {board[6]} | {board[7]} | {board[8]} ")
-    print("\n")
+        .game-card {
+            background-color: var(--card-bg);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            text-align: center;
+            width: 350px;
+        }
 
-def check_winner(board, player):
-    win_conditions = [
-        [0, 1, 2], [3, 4, 5], [6, 7, 8], # Rows
-        [0, 3, 6], [1, 4, 7], [2, 5, 8], # Cols
-        [0, 4, 8], [2, 4, 6]             # Diagonals
-    ]
-    for condition in win_conditions:
-        if all(board[i] == player for i in condition):
-            return True
-    return False
+        h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            background: linear-gradient(90deg, #60a5fa, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-def check_draw(board):
-    return ' ' not in board
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
 
-# --- The Minimax Algorithm ---
-def minimax(board, depth, is_maximizing):
-    if check_winner(board, 'O'): return 1
-    if check_winner(board, 'X'): return -1
-    if check_draw(board): return 0
+        /* Difficulty Selector */
+        .difficulty-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
 
-    if is_maximizing:
-        best_score = -math.inf
-        for i in range(9):
-            if board[i] == ' ':
-                board[i] = 'O'
-                score = minimax(board, depth + 1, False)
-                board[i] = ' '
-                best_score = max(score, best_score)
-        return best_score
-    else:
-        best_score = math.inf
-        for i in range(9):
-            if board[i] == ' ':
-                board[i] = 'X'
-                score = minimax(board, depth + 1, True)
-                board[i] = ' '
-                best_score = min(score, best_score)
-        return best_score
+        .diff-btn {
+            background: transparent;
+            border: 1px solid #334155;
+            color: var(--text-muted);
+            padding: 5px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
 
-def best_move():
-    best_score = -math.inf
-    move = -1
-    for i in range(9):
-        if board[i] == ' ':
-            board[i] = 'O'
-            score = minimax(board, 0, False)
-            board[i] = ' '
-            if score > best_score:
-                best_score = score
-                move = i
-    return move
+        .diff-btn.active {
+            background-color: var(--accent);
+            color: #000;
+            border-color: var(--accent);
+            box-shadow: 0 0 10px var(--accent-glow);
+            font-weight: bold;
+        }
 
-# --- Main Game Loop ---
-def play_game():
-    print("Welcome to Unbeatable Tic-Tac-Toe!")
-    print("You are 'X'. AI is 'O'.")
-    print_board(board)
+        .status {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
 
-    while True:
-        # Human Turn
-        try:
-            choice = int(input("Enter position (1-9): ")) - 1
-            if board[choice] != ' ':
-                print("Space occupied! Try again.")
-                continue
-        except (ValueError, IndexError):
-            print("Invalid input. Enter a number 1-9.")
-            continue
+        /* Game Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 2rem;
+        }
 
-        board[choice] = 'X'
+        .cell {
+            background-color: #0f172a;
+            height: 80px;
+            border-radius: 12px;
+            border: 2px solid #334155;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        .cell:hover {
+            border-color: var(--accent);
+        }
+
+        .cell.x { color: var(--accent); text-shadow: 0 0 10px var(--accent-glow); }
+        .cell.o { color: #fb923c; text-shadow: 0 0 10px rgba(251, 146, 60, 0.5); }
+
+        /* Scoreboard */
+        .scoreboard {
+            display: flex;
+            justify-content: space-around;
+            border-top: 1px solid #334155;
+            padding-top: 1rem;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .score-item span {
+            display: block;
+            font-size: 1.2rem;
+            color: var(--text-main);
+            font-weight: bold;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-card">
+    <h1>✨ Tic-Tac-Toe AI ✨</h1>
+    <p class="subtitle">Challenge the AI and test your skills</p>
+
+    <div class="difficulty-container">
+        <span>Difficulty:</span>
+        <button class="diff-btn" onclick="setDifficulty('easy')">Easy</button>
+        <button class="diff-btn" onclick="setDifficulty('medium')">Medium</button>
+        <button class="diff-btn active" onclick="setDifficulty('hard')">Hard</button>
+    </div>
+
+    <div class="status" id="status">Your Turn (X)</div>
+
+    <div class="grid" id="grid">
+        </div>
+
+    <div class="scoreboard">
+        <div class="score-item">YOU <span id="score-you">0</span></div>
+        <div class="score-item">DRAWS <span id="score-draw">0</span></div>
+        <div class="score-item">AI <span id="score-ai">0</span></div>
+    </div>
+</div>
+
+<script>
+    const board = Array(9).fill(null);
+    const human = 'X';
+    const ai = 'O';
+    let currentPlayer = human;
+    let difficulty = 'hard';
+    let gameActive = true;
+    const scores = { you: 0, draws: 0, ai: 0 };
+
+    const gridElement = document.getElementById('grid');
+    const statusElement = document.getElementById('status');
+    
+    // Initialize Grid
+    function initGrid() {
+        gridElement.innerHTML = '';
+        board.fill(null);
+        gameActive = true;
+        currentPlayer = human;
+        statusElement.innerText = `Your Turn (${human})`;
         
-        if check_winner(board, 'X'):
-            print_board(board)
-            print("You won!")
-            break
-        if check_draw(board):
-            print_board(board)
-            print("It's a Draw!")
-            break
+        board.forEach((_, index) => {
+            const cell = document.createElement('div');
+            cell.classList.add('cell');
+            cell.dataset.index = index;
+            cell.addEventListener('click', handleCellClick);
+            gridElement.appendChild(cell);
+        });
+    }
 
-        # AI Turn
-        print("AI is thinking...")
-        ai_choice = best_move()
-        board[ai_choice] = 'O'
-        print_board(board)
+    function setDifficulty(level) {
+        difficulty = level;
+        document.querySelectorAll('.diff-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+        initGrid(); // Reset game on difficulty change
+    }
 
-        if check_winner(board, 'O'):
-            print("AI Wins!")
-            break
-        if check_draw(board):
-            print("It's a Draw!")
-            break
+    function handleCellClick(e) {
+        const index = e.target.dataset.index;
+        if (board[index] || !gameActive || currentPlayer !== human) return;
 
-if __name__ == "__main__":
-    play_game()
+        makeMove(index, human);
+        
+        if (gameActive) {
+            currentPlayer = ai;
+            statusElement.innerText = "AI is thinking...";
+            setTimeout(aiMove, 500); // Small delay for realism
+        }
+    }
+
+    function makeMove(index, player) {
+        board[index] = player;
+        const cell = gridElement.children[index];
+        cell.innerText = player;
+        cell.classList.add(player.toLowerCase());
+
+        const winner = checkWin(board);
+        if (winner) {
+            endGame(winner);
+        } else if (board.every(cell => cell)) {
+            endGame('draw');
+        } else {
+            currentPlayer = player === human ? ai : human;
+            if(currentPlayer === human) statusElement.innerText = `Your Turn (${human})`;
+        }
+    }
+
+    function aiMove() {
+        let move;
+        if (difficulty === 'easy') {
+            move = getRandomMove();
+        } else if (difficulty === 'medium') {
+            // 50% chance of random, 50% chance of best move
+            move = Math.random() > 0.5 ? getBestMove() : getRandomMove();
+        } else {
+            move = getBestMove(); // Unbeatable Minimax
+        }
+        makeMove(move, ai);
+    }
+
+    function getRandomMove() {
+        let available = board.map((v, i) => v === null ? i : null).filter(v => v !== null);
+        return available[Math.floor(Math.random() * available.length)];
+    }
+
+    // --- Minimax Algorithm (The Brain) ---
+    function getBestMove() {
+        let bestScore = -Infinity;
+        let move;
+        for (let i = 0; i < 9; i++) {
+            if (board[i] === null) {
+                board[i] = ai;
+                let score = minimax(board, 0, false);
+                board[i] = null;
+                if (score > bestScore) {
+                    bestScore = score;
+                    move = i;
+                }
+            }
+        }
+        return move;
+    }
+
+    function minimax(board, depth, isMaximizing) {
+        let result = checkWin(board);
+        if (result === ai) return 10 - depth;
+        if (result === human) return depth - 10;
+        if (board.every(cell => cell)) return 0;
+
+        if (isMaximizing) {
+            let bestScore = -Infinity;
+            for (let i = 0; i < 9; i++) {
+                if (board[i] === null) {
+                    board[i] = ai;
+                    let score = minimax(board, depth + 1, false);
+                    board[i] = null;
+                    bestScore = Math.max(score, bestScore);
+                }
+            }
+            return bestScore;
+        } else {
+            let bestScore = Infinity;
+            for (let i = 0; i < 9; i++) {
+                if (board[i] === null) {
+                    board[i] = human;
+                    let score = minimax(board, depth + 1, true);
+                    board[i] = null;
+                    bestScore = Math.min(score, bestScore);
+                }
+            }
+            return bestScore;
+        }
+    }
+
+    function checkWin(board) {
+        const wins = [
+            [0,1,2], [3,4,5], [6,7,8], // Rows
+            [0,3,6], [1,4,7], [2,5,8], // Cols
+            [0,4,8], [2,4,6]           // Diagonals
+        ];
+        for (let combo of wins) {
+            if (board[combo[0]] && board[combo[0]] === board[combo[1]] && board[combo[0]] === board[combo[2]]) {
+                return board[combo[0]];
+            }
+        }
+        return null;
+    }
+
+    function endGame(winner) {
+        gameActive = false;
+        if (winner === 'draw') {
+            statusElement.innerText = "It's a Draw!";
+            scores.draws++;
+            document.getElementById('score-draw').innerText = scores.draws;
+        } else {
+            statusElement.innerText = winner === human ? "You Won!" : "AI Won!";
+            if (winner === human) {
+                scores.you++;
+                document.getElementById('score-you').innerText = scores.you;
+            } else {
+                scores.ai++;
+                document.getElementById('score-ai').innerText = scores.ai;
+            }
+        }
+        setTimeout(initGrid, 2000); // Restart after 2 seconds
+    }
+
+    // Start Game
+    initGrid();
+</script>
+
+</body>
+</html>
